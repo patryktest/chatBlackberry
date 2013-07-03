@@ -26,14 +26,19 @@ var back = false;
 	//connect();
 });
 
-function background(){
+function hide(){
 	back = true;
+}
+function show(){
+	back = false;
 }
 
 function onDeviceReady()
 {
 	connect();
-	document.addEventListener("pause", background, false);
+	document.addEventListener("pause", hide, false);
+	document.addEventListener("resume", show, false);
+
 }
 function connect(){
 	content = $('#status');
