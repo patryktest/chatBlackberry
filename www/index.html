@@ -68,8 +68,8 @@ function connect(){
 				addMessage(json.data[i].name, json.data[i].text);
 		}
 		if(json.type === 'message'){
-			if(back==true)
-				navigator.notification.vibrate(500);
+			//if(back==true)
+			//	navigator.notification.vibrate(500);
 			addMessage(json.data.name, json.data.text);
 		}
     };
