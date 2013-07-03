@@ -18,8 +18,9 @@
 	//document.addEventListener("deviceready", onDeviceReady, true);
 	connect();
 };*/
+var back = false;
  $(function () {
-	var back = false;
+	
 	document.addEventListener("deviceready", onDeviceReady, true);
 	
 	//connect();
@@ -69,10 +70,8 @@ function connect(){
 		}
 		if(json.type === 'message'){
 			if(back==true){
-				alert('backgraund true');
+				navigator.notification.vibrate(200);
 			}
-			else alert('background of');
-			//	navigator.notification.vibrate(500);
 			addMessage(json.data.name, json.data.text);
 		}
     };
