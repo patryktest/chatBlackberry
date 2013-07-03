@@ -21,7 +21,7 @@
  $(function () {
 	var back = false;
 	document.addEventListener("deviceready", onDeviceReady, true);
-	document.addEventListener("pause", background, false);
+	
 	//connect();
 });
 
@@ -32,6 +32,7 @@ function background(){
 function onDeviceReady()
 {
 	connect();
+	document.addEventListener("pause", background, false);
 }
 function connect(){
 	content = $('#status');
