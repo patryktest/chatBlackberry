@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>WebSockets - Simple chat</title>
+
+
+</head>
+<body>
+<input type="text" id="input"/>
+<span id="status">Connecting...</span>
+
+
+ <script type="text/javascript" src="cordova.js"></script>
+ <script src="./js/jquery.min.js"></script>
+<script type="text/javascript">
+/*function onLoad(){
+	//document.addEventListener("deviceready", onDeviceReady, true);
+	connect();
+};*/
+ $(function () {
+	document.addEventListener("deviceready", onDeviceReady, true);
+	//connect();
+});
+function onDeviceReady()
+{
+	connect();
+}
+function connect(){
+	content = $('#status');
+	content.text("");
+	input = $('#input');
+    // if user is running mozilla then use it's built-in WebSocket
+    window.WebSocket = window.WebSocket || window.MozWebSocket;
+
+    var connection = new WebSocket('ws://demo-project.patryktesting.c9.io');
+
+    connection.onopen = function () {
+        //alert('connected'+window.device.name);
+		connection.send(device.name);
+    };
+
+    connection.onerror = function (error) {
+        // an error occurred when sending/receiving data
+		alert(error);
+    };
+
+    connection.onmessage = function (message) {
+        // try to decode json (I assume that each message from server is json)
+        try {
+            var json = JSON.parse(message.data);
+        } catch (e) {
+            console.log('This doesn\'t look like a valid JSON: ', message.data);
+            return;
+        }
+		
+		if(json.type === 'history')
+		{
+			for(var i=0;i<json.data.length;i++)
+				addMessage(json.data[i].name, json.data[i].text);
+		}
+		if(json.type === 'message'){
+			addMessage(json.data.name, json.data.text);
+		}
+    };
+	
+	function addMessage(name, message){
+		content.prepend('<br><b>'+name+'</b>'+': '+message);
+	}
+	
+	input.keydown(function(e) {
+		if (e.keyCode === 13) {
+			var msg = $(this).val();
+			if (!msg) {
+				return;
+			}
+			// send the message as an ordinary text
+			connection.send(msg);
+			$(this).val('');
+		}
+	});
+}
+
+
+</script>
+</body>
+</html>
