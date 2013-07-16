@@ -1,104 +1,166 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-<title>WebSockets - Simple chat</title>
+    <head>
+        <title>WebSockets - Simple chat</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min.css"/>
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min.js"></script>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script src="./js/jquery.min.js"></script>
+        <script type="text/javascript">
+            /*$(function () {
+                connect();
+                background();
+            });*/
+            var back = false;
+            var connection;
+
+            function background(){
+                    back = true;
+            }
+            $(function() {
+             
+             document.addEventListener("deviceready", onDeviceReady, true);
+             
+             //connect();
+             });
+
+            function hide() {
+                back = true;
+            }
+            function show() {
+                back = false;
+            }
+
+            function onDeviceReady()
+            {
+                connect();
+                document.addEventListener("pause", hide, false);
+                document.addEventListener("resume", show, false);
+
+            }
+            function login(name){
+                if(name!==""){
+                   window.location ='#second';
+                   connection.send(JSON.stringify({type: 'userName', text: name}));   
+                }
+                
+            }
+            function connect() {
+                var messageArrayText = $('#messageArray');
+                messageArrayText.text('');
+                var statusOnConnect = $('#connectionON');
+                statusOnConnect.text('');
+               // var content = $('#status');
+                //content.text("");
+                input = $('#input');
+                // if user is running mozilla then use it's built-in WebSocket
+                window.WebSocket = window.WebSocket || window.MozWebSocket;
+
+                connection = new WebSocket('ws://demo-project.patryktesting.c9.io');
+
+                connection.onopen = function() {
+                    statusOnConnect.text('Connected');                    
+                };
+
+                connection.onerror = function(error) {
+                    statusOnConnect.text('Not Connected');
+                    // an error occurred when sending/receiving data
+                    alert(error);
+                };
+
+                connection.onmessage = function(message) {
+                    // try to decode json (I assume that each message from server is json)
+                    try {
+                        var json = JSON.parse(message.data);
+                    } catch (e) {
+                        console.log('This doesn\'t look like a valid JSON: ', message.data);
+                        return;
+                    }
+                    
+                    if (json.type === 'history')
+                    {
+                        for (var i = 0; i < json.data.length; i++)
+                            addMessage(json.data[i].name, json.data[i].text);
+                    }
+                    if (json.type === 'message') {
+                        /*if (back == true) {
+                            navigator.notification.vibrate(200);
+                        }*/
+                        addMessage(json.data.name, json.data.text);
+                    }
+                };
+
+                function addMessage(name, message) {
+                    //content.prepend('<br><b>' + name + '</b>' + ': ' + message);
+                    messageArrayText.prepend('<li class="ui-li ui-li-static ui-btn-up-c">' + name + ':' + message+'</li>');
+                    
+                }
+
+                input.keydown(function(e) {
+                    if (e.keyCode === 13) {
+                        var msg = $(this).val();
+                        if (!msg) {
+                            return;
+                        }
+                        // send the message as an ordinary text
+                        //connection.send(msg);
+                        connection.send(JSON.stringify({type: 'message', text: msg}));
+                        $(this).val('');
+                    }
+                });
+            }
 
 
-</head>
-<body>
-<input type="text" id="input"/>
-<span id="status">Connecting...</span>
+        </script>
+        <style>
+            .ui-footer {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+            }
+        </style>
+    </head>
+    
+    <body>
+        
 
-
- <script type="text/javascript" src="cordova.js"></script>
- <script src="./js/jquery.min.js"></script>
-<script type="text/javascript">
-/*function onLoad(){
-	//document.addEventListener("deviceready", onDeviceReady, true);
-	connect();
-};*/
-var back = false;
- $(function () {
-	
-	document.addEventListener("deviceready", onDeviceReady, true);
-	
-	//connect();
-});
-
-function hide(){
-	back = true;
-}
-function show(){
-	back = false;
-}
-
-function onDeviceReady()
-{
-	connect();
-	document.addEventListener("pause", hide, false);
-	document.addEventListener("resume", show, false);
-
-}
-function connect(){
-	content = $('#status');
-	content.text("");
-	input = $('#input');
-    // if user is running mozilla then use it's built-in WebSocket
-    window.WebSocket = window.WebSocket || window.MozWebSocket;
-
-    var connection = new WebSocket('ws://demo-project.patryktesting.c9.io');
-
-    connection.onopen = function () {
-        //alert('connected'+window.device.name);
-		connection.send(device.name);
-    };
-
-    connection.onerror = function (error) {
-        // an error occurred when sending/receiving data
-		alert(error);
-    };
-
-    connection.onmessage = function (message) {
-        // try to decode json (I assume that each message from server is json)
-        try {
-            var json = JSON.parse(message.data);
-        } catch (e) {
-            console.log('This doesn\'t look like a valid JSON: ', message.data);
-            return;
-        }
-		
-		if(json.type === 'history')
-		{
-			for(var i=0;i<json.data.length;i++)
-				addMessage(json.data[i].name, json.data[i].text);
-		}
-		if(json.type === 'message'){
-			if(back==true){
-				navigator.notification.vibrate(200);
-			}
-			addMessage(json.data.name, json.data.text);
-		}
-    };
-	
-	function addMessage(name, message){
-		content.prepend('<br><b>'+name+'</b>'+': '+message);
-	}
-	
-	input.keydown(function(e) {
-		if (e.keyCode === 13) {
-			var msg = $(this).val();
-			if (!msg) {
-				return;
-			}
-			// send the message as an ordinary text
-			connection.send(msg);
-			$(this).val('');
-		}
-	});
-}
-
-
-</script>
-</body>
+        <div data-role="page" id="main" data-theme="e">
+            <div data-role="header" >
+                <h1>Main Page</h1>
+            </div>
+            
+            <div data-role="content">
+                <p>
+                    <input type="text" id="userNameText"/>
+                    <button onclick="login($('#userNameText').val());">Login</button>
+                    <span id="connectionON">Status...</span>
+                    
+                </p>
+            </div>
+            
+            <div data-role="footer">
+                <h4>PAGE FOOTER</h4>
+            </div>
+        </div>
+        
+        <div data-role="page" id="second" data-theme="e">
+            <div data-role="header">
+                <h1>Chat window</h1>  
+                <a href="#main">Logout</a>
+            </div>
+            
+            <div data-role="content">
+                <p>
+                    <input type="text" id="input"/>
+                    <!-- <span id="status">Connecting...</span>-->
+                </p>
+                <ul data-role="listview" id="messageArray" data-theme="e">
+                </ul>
+            </div>
+        </div>
+        
+    </body>
 </html>
